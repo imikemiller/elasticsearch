@@ -21,115 +21,15 @@ class Query
     public $connection;
 
     /**
-     * Ignored HTTP errors
-     * @var array
+     * @var QueryDsl
      */
-    public $ignores = [];
-
-    /**
-     * Filter operators
-     * @var array
-     */
-    protected $operators = [
-        "=",
-        "!=",
-        ">",
-        ">=",
-        "<",
-        "<=",
-        "like",
-        "exists"
-    ];
+    public $queryDsl;
 
     /**
      * Query array
      * @var
      */
     protected $query;
-
-    /**
-     * Query index name
-     * @var
-     */
-    protected $index;
-
-    /**
-     * Query type name
-     * @var
-     */
-    protected $type;
-
-    /**
-     * Query type key
-     * @var
-     */
-    protected $_id;
-
-    /**
-     * Query body
-     * @var array
-     */
-    public $body = [];
-
-    /**
-     * Query bool filter
-     * @var array
-     */
-    protected $filter = [];
-
-    /**
-     * Query bool must
-     * @var array
-     */
-    public $must = [];
-
-    /**
-     * Query bool must not
-     * @var array
-     */
-    public $must_not = [];
-
-    /**
-     * Query returned fields list
-     * @var array
-     */
-    protected $_source = [];
-
-    /**
-     * Query sort fields
-     * @var array
-     */
-    protected $sort = [];
-
-    /**
-     * Query scroll time
-     * @var string
-     */
-    protected $scroll;
-
-    /**
-     * Query scroll id
-     * @var string
-     */
-    protected $scroll_id;
-
-    /**
-     * Query search type
-     * @var int
-     */
-    protected $search_type;
-
-    /**
-     * Query limit
-     * @var int
-     */
-    protected $take = 10;
-
-    /**
-     * Query offset
-     * @var int
-     */
-    protected $skip = 0;
 
     /**
      * The key that should be used when caching the query.
@@ -166,10 +66,14 @@ class Query
      * Query constructor.
      * @param $connection
      */
-    function __construct($connection = NULL)
+    function __construct($connection = NULL, QueryDsl $queryDsl = NULL)
     {
         $this->connection = $connection;
+        $this->queryDsl = $queryDsl?:new QueryDsl();
     }
+    ////////////////............
+    ///
+    ///
 
     /**
      * Set the index name
@@ -178,9 +82,7 @@ class Query
      */
     public function index($index)
     {
-
-        $this->index = $index;
-
+        $this->queryDsl->index($index);
         return $this;
     }
 
@@ -190,7 +92,7 @@ class Query
      */
     public function getIndex()
     {
-        return $this->index;
+        return $this->queryDsl->getIndex();
     }
 
     /**
@@ -200,9 +102,7 @@ class Query
      */
     public function type($type)
     {
-
-        $this->type = $type;
-
+        $this->queryDsl->type($type);
         return $this;
     }
 
@@ -212,7 +112,7 @@ class Query
      */
     public function getType()
     {
-        return $this->type;
+        return $this->queryDsl->getType();
     }
 
     /**
@@ -222,9 +122,7 @@ class Query
      */
     public function scroll($scroll)
     {
-
-        $this->scroll = $scroll;
-
+        $this->queryDsl->scroll($scroll);
         return $this;
     }
 
@@ -235,9 +133,7 @@ class Query
      */
     public function scrollID($scroll)
     {
-
-        $this->scroll_id = $scroll;
-
+        $this->queryDsl->scrollID($scroll);
         return $this;
     }
 
@@ -248,9 +144,7 @@ class Query
      */
     public function searchType($type)
     {
-
-        $this->search_type = $type;
-
+        $this->queryDsl->searchType($type);
         return $this;
     }
 
@@ -260,7 +154,8 @@ class Query
      */
     public function getSearchType()
     {
-        return $this->search_type;
+        $this->queryDsl->getSearchType();
+        return $this;
     }
 
     /**
@@ -269,7 +164,8 @@ class Query
      */
     public function getScroll()
     {
-        return $this->scroll;
+        $this->queryDsl->getScroll();
+        return $this;
     }
 
     /**
@@ -279,9 +175,7 @@ class Query
      */
     public function take($take = 10)
     {
-
-        $this->take = $take;
-
+        $this->queryDsl->take($take);
         return $this;
     }
 
@@ -297,14 +191,14 @@ class Query
         foreach ($args as $arg) {
 
             if (is_array($arg)) {
-                $this->ignores = array_merge($this->ignores, $arg);
+                $this->queryDsl->ignores = array_merge($this->queryDsl->ignores, $arg);
             } else {
-                $this->ignores[] = $arg;
+                $this->queryDsl->ignores[] = $arg;
             }
 
         }
 
-        $this->ignores = array_unique($this->ignores);
+        $this->queryDsl->ignores = array_unique($this->queryDsl->ignores);
 
         return $this;
     }
@@ -315,7 +209,7 @@ class Query
      */
     protected function getTake()
     {
-        return $this->take;
+        return $this->queryDsl->getTake();
     }
 
     /**
@@ -325,9 +219,7 @@ class Query
      */
     public function skip($skip = 0)
     {
-
-        $this->skip = $skip;
-
+        $this->queryDsl->skip($skip);
         return $this;
     }
 
@@ -337,7 +229,7 @@ class Query
      */
     protected function getSkip()
     {
-        return $this->skip;
+        return $this->queryDsl->getSkip();
     }
 
     /**
@@ -348,9 +240,7 @@ class Query
      */
     public function orderBy($field, $direction = "asc")
     {
-
-        $this->sort[] = [$field => $direction];
-
+        $this->queryDsl->orderBy($field,$direction);
         return $this;
     }
 
@@ -361,12 +251,7 @@ class Query
      */
     protected function isOperator($string)
     {
-
-        if (in_array($string, $this->operators)) {
-            return true;
-        }
-
-        return false;
+        return $this->queryDsl->isOperator($string);
     }
 
     /**
@@ -381,9 +266,9 @@ class Query
         foreach ($args as $arg) {
 
             if (is_array($arg)) {
-                $this->_source = array_merge($this->_source, $arg);
+                $this->queryDsl->setSource(array_merge($this->queryDsl->getSource(), $arg));
             } else {
-                $this->_source[] = $arg;
+                $this->queryDsl->setSource($arg);
             }
 
         }
@@ -399,9 +284,9 @@ class Query
     public function _id($_id = false)
     {
 
-        $this->_id = $_id;
+        $this->queryDsl->_id = $_id;
 
-        $this->filter[] = ["term" => ["_id" => $_id]];
+        $this->queryDsl->filter[] = ["term" => ["_id" => $_id]];
 
         return $this;
     }
@@ -425,50 +310,7 @@ class Query
      */
     public function where($name, $operator = "=", $value = NULL)
     {
-
-        if (is_callback_function($name)) {
-            $name($this);
-            return $this;
-        }
-
-        if (!$this->isOperator($operator)) {
-            $value = $operator;
-            $operator = "=";
-        }
-
-        if ($operator == "=") {
-
-            if ($name == "_id") {
-                return $this->_id($value);
-            }
-
-            $this->filter[] = ["term" => [$name => $value]];
-        }
-
-        if ($operator == ">") {
-            $this->filter[] = ["range" => [$name => ["gt" => $value]]];
-        }
-
-        if ($operator == ">=") {
-            $this->filter[] = ["range" => [$name => ["gte" => $value]]];
-        }
-
-        if ($operator == "<") {
-            $this->filter[] = ["range" => [$name => ["lt" => $value]]];
-        }
-
-        if ($operator == "<=") {
-            $this->filter[] = ["range" => [$name => ["lte" => $value]]];
-        }
-
-        if ($operator == "like") {
-            $this->must[] = ["match" => [$name => $value]];
-        }
-
-        if ($operator == "exists") {
-            $this->whereExists($name, $value);
-        }
-
+        $this->queryDsl->where($name,$operator,$value);
         return $this;
     }
 
@@ -481,45 +323,7 @@ class Query
      */
     public function whereNot($name, $operator = "=", $value = NULL)
     {
-
-        if (is_callback_function($name)) {
-            $name($this);
-            return $this;
-        }
-
-        if (!$this->isOperator($operator)) {
-            $value = $operator;
-            $operator = "=";
-        }
-
-        if ($operator == "=") {
-            $this->must_not[] = ["term" => [$name => $value]];
-        }
-
-        if ($operator == ">") {
-            $this->must_not[] = ["range" => [$name => ["gt" => $value]]];
-        }
-
-        if ($operator == ">=") {
-            $this->must_not[] = ["range" => [$name => ["gte" => $value]]];
-        }
-
-        if ($operator == "<") {
-            $this->must_not[] = ["range" => [$name => ["lt" => $value]]];
-        }
-
-        if ($operator == "<=") {
-            $this->must_not[] = ["range" => [$name => ["lte" => $value]]];
-        }
-
-        if ($operator == "like") {
-            $this->must_not[] = ["match" => [$name => $value]];
-        }
-
-        if ($operator == "exists") {
-            $this->whereExists($name, !$value);
-        }
-
+        $this->queryDsl->whereNot($name,$operator,$value);
         return $this;
     }
 
@@ -532,14 +336,7 @@ class Query
      */
     public function whereBetween($name, $first_value, $last_value = null)
     {
-
-        if (is_array($first_value) && count($first_value) == 2) {
-            $last_value = $first_value[1];
-            $first_value = $first_value[0];
-        }
-
-        $this->filter[] = ["range" => [$name => ["gte" => $first_value, "lte" => $last_value]]];
-
+        $this->whereBetween($name,$first_value,$last_value);
         return $this;
     }
 
@@ -729,7 +526,7 @@ class Query
 
         return $this;
     }
-
+//////
     /**
      * Generate the query to be executed
      * @return array
