@@ -6,7 +6,7 @@
  * Time: 17:27
  */
 
-namespace Basemkhirat\Elasticsearch;
+namespace Basemkhirat\Elasticsearch\Classes;
 
 
 /**
@@ -601,33 +601,10 @@ class QueryDsl
     }
 
     /**
-     * Search the entire document fields
-     * @param null $q
-     * @return $this
-     */
-    public function search($q = NULL, $settings = NULL)
-    {
-
-        if ($q) {
-
-            $search = new Search($this, $q, $settings);
-
-            if (!is_callback_function($settings)) {
-                $search->boost($settings ? $settings : 1);
-            }
-
-            $search->build();
-
-        }
-
-        return $this;
-    }
-
-    /**
      * Generate the query body
      * @return array
      */
-    protected function getBody()
+    public function getBody()
     {
 
         $body = $this->body;
@@ -717,6 +694,5 @@ class QueryDsl
     {
         $this->filter[] = $filter;
     }
-
 
 }

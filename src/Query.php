@@ -3,8 +3,8 @@
 namespace Basemkhirat\Elasticsearch;
 
 use Basemkhirat\Elasticsearch\Classes\Bulk;
+use Basemkhirat\Elasticsearch\Classes\QueryDsl;
 use Basemkhirat\Elasticsearch\Classes\Search;
-use Basemkhirat\Elasticsearch\Collection;
 
 
 /**
@@ -64,16 +64,14 @@ class Query
 
     /**
      * Query constructor.
-     * @param $connection
+     * @param resource $connection|null
+     * @param QueryDsl $queryDsl|null
      */
     function __construct($connection = NULL, QueryDsl $queryDsl = NULL)
     {
         $this->connection = $connection;
         $this->queryDsl = $queryDsl?:new QueryDsl();
     }
-    ////////////////............
-    ///
-    ///
 
     /**
      * Set the index name
@@ -185,21 +183,7 @@ class Query
      */
     public function ignore()
     {
-
-        $args = func_get_args();
-
-        foreach ($args as $arg) {
-
-            if (is_array($arg)) {
-                $this->queryDsl->ignores = array_merge($this->queryDsl->ignores, $arg);
-            } else {
-                $this->queryDsl->ignores[] = $arg;
-            }
-
-        }
-
-        $this->queryDsl->ignores = array_unique($this->queryDsl->ignores);
-
+        $this->queryDsl->ignore(...func_get_args());
         return $this;
     }
 
@@ -260,19 +244,7 @@ class Query
      */
     public function select()
     {
-
-        $args = func_get_args();
-
-        foreach ($args as $arg) {
-
-            if (is_array($arg)) {
-                $this->queryDsl->setSource(array_merge($this->queryDsl->getSource(), $arg));
-            } else {
-                $this->queryDsl->setSource($arg);
-            }
-
-        }
-
+        $this->queryDsl->select(...func_get_args());
         return $this;
     }
 
@@ -283,11 +255,7 @@ class Query
      */
     public function _id($_id = false)
     {
-
-        $this->queryDsl->_id = $_id;
-
-        $this->queryDsl->filter[] = ["term" => ["_id" => $_id]];
-
+        $this->queryDsl->_id($_id);
         return $this;
     }
 
@@ -336,7 +304,7 @@ class Query
      */
     public function whereBetween($name, $first_value, $last_value = null)
     {
-        $this->whereBetween($name,$first_value,$last_value);
+        $this->queryDsl->whereBetween($name,$first_value,$last_value);
         return $this;
     }
 
@@ -349,14 +317,7 @@ class Query
      */
     public function whereNotBetween($name, $first_value, $last_value = null)
     {
-
-        if (is_array($first_value) && count($first_value) == 2) {
-            $last_value = $first_value[1];
-            $first_value = $first_value[0];
-        }
-
-        $this->must_not[] = ["range" => [$name => ["gte" => $first_value, "lte" => $last_value]]];
-
+        $this->queryDsl->whereNotBetween($name,$first_value,$last_value);
         return $this;
     }
 
@@ -368,14 +329,7 @@ class Query
      */
     public function whereIn($name, $value = [])
     {
-
-        if (is_callback_function($name)) {
-            $name($this);
-            return $this;
-        }
-
-        $this->filter[] = ["terms" => [$name => $value]];
-
+        $this->queryDsl->whereIn($name,$value);
         return $this;
     }
 
@@ -387,14 +341,7 @@ class Query
      */
     public function whereNotIn($name, $value = [])
     {
-
-        if (is_callback_function($name)) {
-            $name($this);
-            return $this;
-        }
-
-        $this->must_not[] = ["terms" => [$name => $value]];
-
+        $this->queryDsl->whereNotIn($name,$value);
         return $this;
     }
 
@@ -407,13 +354,7 @@ class Query
      */
     public function whereExists($name, $exists = true)
     {
-
-        if ($exists) {
-            $this->must[] = ["exists" => ["field" => $name]];
-        } else {
-            $this->must_not[] = ["exists" => ["field" => $name]];
-        }
-
+        $this->queryDsl->whereExists($name,$exists);
         return $this;
     }
 
@@ -434,19 +375,7 @@ class Query
      */
     public function distance($name, $value, $distance)
     {
-
-        if (is_callback_function($name)) {
-            $name($this);
-            return $this;
-        }
-
-        $this->filter[] = [
-            "geo_distance" => [
-                $name => $value,
-                "distance" => $distance,
-            ]
-        ];
-
+        $this->queryDsl->distance($name,$value,$distance);
         return $this;
     }
 
@@ -479,38 +408,7 @@ class Query
      */
     protected function getBody()
     {
-
-        $body = $this->body;
-
-        if (count($this->_source)) {
-
-            $_source = array_key_exists("_source", $body) ? $body["_source"] : [];
-
-            $body["_source"] = array_unique(array_merge($_source, $this->_source));
-        }
-
-        if (count($this->must)) {
-            $body["query"]["bool"]["must"] = $this->must;
-        }
-
-        if (count($this->must_not)) {
-            $body["query"]["bool"]["must_not"] = $this->must_not;
-        }
-
-        if (count($this->filter)) {
-            $body["query"]["bool"]["filter"] = $this->filter;
-        }
-
-        if (count($this->sort)) {
-
-            $sortFields = array_key_exists("sort", $body) ? $body["sort"] : [];
-
-            $body["sort"] = array_unique(array_merge($sortFields, $this->sort), SORT_REGULAR);
-
-        }
-
-        $this->body = $body;
-
+        $body = $this->queryDsl->getBody();
         return $body;
     }
 
@@ -522,11 +420,11 @@ class Query
     function body($body = [])
     {
 
-        $this->body = $body;
+        $this->queryDsl->body = $body;
 
         return $this;
     }
-//////
+
     /**
      * Generate the query to be executed
      * @return array
@@ -536,33 +434,33 @@ class Query
 
         $query = [];
 
-        $query["index"] = $this->getIndex();
+        $query["index"] = $this->queryDsl->getIndex();
 
         if ($this->getType()) {
-            $query["type"] = $this->getType();
+            $query["type"] = $this->queryDsl->getType();
         }
 
         if($this->model){
             $this->model->boot($this);
         }
 
-        $query["body"] = $this->getBody();
+        $query["body"] = $this->queryDsl->getBody();
 
-        $query["from"] = $this->getSkip();
+        $query["from"] = $this->queryDsl->getSkip();
 
-        $query["size"] = $this->getTake();
+        $query["size"] = $this->queryDsl->getTake();
 
-        if (count($this->ignores)) {
-            $query["client"] = ['ignore' => $this->ignores];
+        if (count($this->queryDsl->ignores)) {
+            $query["client"] = ['ignore' => $this->queryDsl->ignores];
         }
 
-        $search_type = $this->getSearchType();
+        $search_type = $this->queryDsl->getSearchType();
 
         if ($search_type) {
             $query["search_type"] = $search_type;
         }
 
-        $scroll = $this->getScroll();
+        $scroll = $this->queryDsl->getScroll();
 
         if ($scroll) {
             $query["scroll"] = $scroll;
@@ -836,7 +734,7 @@ class Query
 
     /**
      * Insert a bulk of documents
-     * @param $data multidimensional array of [id => data] pairs
+     * @param $data[] multidimensional array of [id => data] pairs
      * @return object
      */
     public function bulk($data)
