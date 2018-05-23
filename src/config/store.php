@@ -32,5 +32,6 @@ return [
             ]
 
         ]
-    ]
+    ],
+    'driver'=>\Basemkhirat\Elasticsearch\Classes\Repositorys\FileRepository::class
 ];

@@ -2,6 +2,7 @@
 
 namespace Basemkhirat\Elasticsearch;
 
+use Basemkhirat\Elasticsearch\Classes\Repositorys\RepositoryInterface;
 use Basemkhirat\Elasticsearch\Commands\CreateQueryStoreIndexCommand;
 use Basemkhirat\Elasticsearch\Commands\ReindexCommand;
 use Elasticsearch\ClientBuilder as ElasticBuilder;
@@ -40,6 +41,8 @@ class ElasticsearchServiceProvider extends ServiceProvider
         $this->mergeConfigFrom(
             dirname(__FILE__) . '/config/es.php', 'es'
         );
+
+        self::mergeStoreConfig();
 
         $this->publishes([
             dirname(__FILE__) . '/config/' => config_path(),
@@ -80,6 +83,20 @@ class ElasticsearchServiceProvider extends ServiceProvider
 
     }
 
+    public static function mergeStoreConfig()
+    {
+        /*
+         * Merge in config for the query store index
+         */
+        $indices = app('config')->get('es.indices');
+        $store = require dirname(__FILE__) . '/../config/store.php';
+        $indices = array_merge($indices,$store['store']);
+        /*
+         * Overwrite existing indices config
+         */
+        app('config')->set('es.indices',$indices);
+    }
+
     /**
      * Register any application services.
      *
@@ -111,5 +128,7 @@ class ElasticsearchServiceProvider extends ServiceProvider
         $this->app->bind('es', function () {
             return new Connection();
         });
+
+        $this->app->bind(RepositoryInterface::class,$this->app->config('es.'))
     }
 }
