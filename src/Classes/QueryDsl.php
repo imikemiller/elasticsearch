@@ -205,7 +205,7 @@ class QueryDsl
 
     /**
      * get the query search type
-     * @return $this
+     * @return int
      */
     public function getSearchType()
     {
@@ -214,7 +214,7 @@ class QueryDsl
 
     /**
      * Get the query scroll
-     * @return $this
+     * @return string
      */
     public function getScroll()
     {

@@ -9,6 +9,8 @@
 namespace Basemkhirat\Elasticsearch\Commands;
 
 
+use Symfony\Component\Console\Input\InputArgument;
+
 class CreateQueryStoreIndexCommand extends CreateIndexCommand
 {
 
@@ -28,16 +30,26 @@ class CreateQueryStoreIndexCommand extends CreateIndexCommand
 
     public function handle()
     {
-        app()->mergeConfigFrom(
-            dirname(__FILE__) . '/config/store.php', 'es'
-        );
+        /*
+         * Merge in config for the query store index
+         */
+        $indices = app('config')->get('es.indices');
+        $store = require dirname(__FILE__) . '/../config/store.php';
+        $indices = array_merge($indices,$store['store']);
+        /*
+         * Overwrite existing indices config
+         */
+        app('config')->set('es.indices',$indices);
 
-        $index = config('es.store.index');
+        /*
+         * Index name (set ES_STORE_INDEX and ES_STORE_INDEX_ALIAS)
+         */
+        $index = array_keys($store['store'])[0];
         $this->info("Creating query storage index: {$index}");
-        $args = ['index'=>$index];
-        $args = $this->option('connection')?$args['connection']=$this->option('connection'):$args;
-
-        $this->call('es:indices:create',$args);
-
+        /*
+         * Pass as an argument and call parent
+         */
+        $this->getDefinition()->addArgument(new InputArgument('index',null,'',$index));
+        parent::handle();
     }
 }

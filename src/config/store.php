@@ -7,10 +7,10 @@
  */
 return [
     'store'=>[
-        env('ES_STORE_INDEX') => [
+        env('ES_STORE_INDEX','queries_1') => [
 
             'aliases' => [
-                env('ES_STORE_INDEX_ALIAS')
+                env('ES_STORE_INDEX_ALIAS','queries')
             ],
 
             'settings' => [
