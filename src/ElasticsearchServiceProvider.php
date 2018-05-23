@@ -129,6 +129,6 @@ class ElasticsearchServiceProvider extends ServiceProvider
             return new Connection();
         });
 
-        $this->app->bind(RepositoryInterface::class,$this->app->config('es.'))
+       // $this->app->bind(RepositoryInterface::class,$this->app->config('es.'))
     }
 }
