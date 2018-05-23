@@ -13,7 +13,7 @@ use Basemkhirat\Elasticsearch\Model;
 
 class QueryStore extends Model
 {
-    public static function store(QueryDsl $queryDsl, $descrition = null)
+    public static function store(QueryDsl $queryDsl, $description = null)
     {
         $qs = new static();
         $qs->setIndex(config('es.storage_index'));

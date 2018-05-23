@@ -2,6 +2,7 @@
 
 namespace Basemkhirat\Elasticsearch;
 
+use Basemkhirat\Elasticsearch\Commands\CreateQueryStoreIndexCommand;
 use Basemkhirat\Elasticsearch\Commands\ReindexCommand;
 use Elasticsearch\ClientBuilder as ElasticBuilder;
 use Illuminate\Contracts\Container\BindingResolutionException;
@@ -100,7 +101,8 @@ class ElasticsearchServiceProvider extends ServiceProvider
                     CreateIndexCommand::class,
                     UpdateIndexCommand::class,
                     DropIndexCommand::class,
-                    ReindexCommand::class
+                    ReindexCommand::class,
+                    CreateQueryStoreIndexCommand::class
                 ]);
 
             }

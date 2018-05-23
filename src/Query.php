@@ -74,34 +74,12 @@ class Query
     }
 
     /**
-     * Set the index name
-     * @param $index
-     * @return $this
-     */
-    public function index($index)
-    {
-        $this->queryDsl->index($index);
-        return $this;
-    }
-
-    /**
      * Get the index name
      * @return mixed
      */
     public function getIndex()
     {
         return $this->queryDsl->getIndex();
-    }
-
-    /**
-     * Set the type name
-     * @param $type
-     * @return $this
-     */
-    public function type($type)
-    {
-        $this->queryDsl->type($type);
-        return $this;
     }
 
     /**
@@ -114,80 +92,6 @@ class Query
     }
 
     /**
-     * Set the query scroll
-     * @param string $scroll
-     * @return $this
-     */
-    public function scroll($scroll)
-    {
-        $this->queryDsl->scroll($scroll);
-        return $this;
-    }
-
-    /**
-     * Set the query scroll ID
-     * @param string $scroll
-     * @return $this
-     */
-    public function scrollID($scroll)
-    {
-        $this->queryDsl->scrollID($scroll);
-        return $this;
-    }
-
-    /**
-     * Set the query search type
-     * @param string $type
-     * @return $this
-     */
-    public function searchType($type)
-    {
-        $this->queryDsl->searchType($type);
-        return $this;
-    }
-
-    /**
-     * get the query search type
-     * @return $this
-     */
-    public function getSearchType()
-    {
-        $this->queryDsl->getSearchType();
-        return $this;
-    }
-
-    /**
-     * Get the query scroll
-     * @return $this
-     */
-    public function getScroll()
-    {
-        $this->queryDsl->getScroll();
-        return $this;
-    }
-
-    /**
-     * Set the query limit
-     * @param int $take
-     * @return $this
-     */
-    public function take($take = 10)
-    {
-        $this->queryDsl->take($take);
-        return $this;
-    }
-
-    /**
-     * Ignore bad HTTP response
-     * @return $this
-     */
-    public function ignore()
-    {
-        $this->queryDsl->ignore(...func_get_args());
-        return $this;
-    }
-
-    /**
      * Get the query limit
      * @return int
      */
@@ -197,35 +101,12 @@ class Query
     }
 
     /**
-     * Set the query offset
-     * @param int $skip
-     * @return $this
-     */
-    public function skip($skip = 0)
-    {
-        $this->queryDsl->skip($skip);
-        return $this;
-    }
-
-    /**
      * Get the query offset
      * @return int
      */
     protected function getSkip()
     {
         return $this->queryDsl->getSkip();
-    }
-
-    /**
-     * Set the sorting field
-     * @param        $field
-     * @param string $direction
-     * @return $this
-     */
-    public function orderBy($field, $direction = "asc")
-    {
-        $this->queryDsl->orderBy($field,$direction);
-        return $this;
     }
 
     /**
@@ -239,27 +120,6 @@ class Query
     }
 
     /**
-     * Set the query fields to return
-     * @return $this
-     */
-    public function select()
-    {
-        $this->queryDsl->select(...func_get_args());
-        return $this;
-    }
-
-    /**
-     * Filter by _id
-     * @param bool $_id
-     * @return $this
-     */
-    public function _id($_id = false)
-    {
-        $this->queryDsl->_id($_id);
-        return $this;
-    }
-
-    /**
      * Just an alias for _id() method
      * @param bool $_id
      * @return $this
@@ -269,115 +129,6 @@ class Query
         return $this->_id($_id);
     }
 
-    /**
-     * Set the query where clause
-     * @param        $name
-     * @param string $operator
-     * @param null $value
-     * @return $this
-     */
-    public function where($name, $operator = "=", $value = NULL)
-    {
-        $this->queryDsl->where($name,$operator,$value);
-        return $this;
-    }
-
-    /**
-     * Set the query inverse where clause
-     * @param        $name
-     * @param string $operator
-     * @param null $value
-     * @return $this
-     */
-    public function whereNot($name, $operator = "=", $value = NULL)
-    {
-        $this->queryDsl->whereNot($name,$operator,$value);
-        return $this;
-    }
-
-    /**
-     * Set the query where between clause
-     * @param $name
-     * @param $first_value
-     * @param $last_value
-     * @return $this
-     */
-    public function whereBetween($name, $first_value, $last_value = null)
-    {
-        $this->queryDsl->whereBetween($name,$first_value,$last_value);
-        return $this;
-    }
-
-    /**
-     * Set the query where not between clause
-     * @param $name
-     * @param $first_value
-     * @param $last_value
-     * @return $this
-     */
-    public function whereNotBetween($name, $first_value, $last_value = null)
-    {
-        $this->queryDsl->whereNotBetween($name,$first_value,$last_value);
-        return $this;
-    }
-
-    /**
-     * Set the query where in clause
-     * @param       $name
-     * @param array $value
-     * @return $this
-     */
-    public function whereIn($name, $value = [])
-    {
-        $this->queryDsl->whereIn($name,$value);
-        return $this;
-    }
-
-    /**
-     * Set the query where not in clause
-     * @param       $name
-     * @param array $value
-     * @return $this
-     */
-    public function whereNotIn($name, $value = [])
-    {
-        $this->queryDsl->whereNotIn($name,$value);
-        return $this;
-    }
-
-
-    /**
-     * Set the query where exists clause
-     * @param      $name
-     * @param bool $exists
-     * @return $this
-     */
-    public function whereExists($name, $exists = true)
-    {
-        $this->queryDsl->whereExists($name,$exists);
-        return $this;
-    }
-
-    /**
-     * Add a condition to find documents which are some distance away from the given geo point.
-     *
-     * @see https://www.elastic.co/guide/en/elasticsearch/reference/2.4/query-dsl-geo-distance-query.html
-     *
-     * @param        $name
-     *   A name of the field.
-     * @param mixed $value
-     *   A starting geo point which can be represented by a string "lat,lon",
-     *   an object {"lat": lat, "lon": lon} or an array [lon,lat].
-     * @param string $distance
-     *   A distance from the starting geo point. It can be for example "20km".
-     *
-     * @return $this
-     */
-    public function distance($name, $value, $distance)
-    {
-        $this->queryDsl->distance($name,$value,$distance);
-        return $this;
-    }
 
     /**
      * Search the entire document fields
@@ -408,21 +159,7 @@ class Query
      */
     protected function getBody()
     {
-        $body = $this->queryDsl->getBody();
-        return $body;
-    }
-
-    /**
-     * set the query body array
-     * @param array $body
-     * @return $this
-     */
-    function body($body = [])
-    {
-
-        $this->queryDsl->body = $body;
-
-        return $this;
+        return $this->queryDsl->getBody();
     }
 
     /**
@@ -1064,6 +801,15 @@ class Query
 
         if (method_exists($this, $method)) {
             return $this->$method(...$parameters);
+        }elseif(method_exists($this->queryDsl, $method)){
+            /*
+             * All the chainable methods that were moved to QueryDsl
+             * can be handled here and survive as they all expect
+             * $this to be the returned value.
+             */
+            $this->queryDsl->$method(...$parameters);
+            return $this;
+
         } else {
 
             // Check for model scopes
