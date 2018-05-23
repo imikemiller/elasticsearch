@@ -47,8 +47,8 @@ class CreateQueryStoreIndexCommand extends CreateIndexCommand
          */
         $this->getDefinition()->addArgument(new InputArgument('index',null,'',$index));
 
-        $this->confirm("Creating query storage index: {$index}",function(){
+        if($this->confirm("Creating query storage index: {$index}")){
             parent::handle();
-        });
+        };
     }
 }
