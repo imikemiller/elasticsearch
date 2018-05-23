@@ -89,7 +89,7 @@ class ElasticsearchServiceProvider extends ServiceProvider
          * Merge in config for the query store index
          */
         $indices = app('config')->get('es.indices');
-        $store = require dirname(__FILE__) . '/../config/store.php';
+        $store = require dirname(__FILE__) . '/config/store.php';
         $indices = array_merge($indices,$store['store']);
         /*
          * Overwrite existing indices config
