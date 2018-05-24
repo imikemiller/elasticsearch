@@ -7,6 +7,7 @@
  */
 namespace Basemkhirat\Elasticsearch\Tests;
 
+use Basemkhirat\Elasticsearch\Classes\QueryDsl;
 use Basemkhirat\Elasticsearch\Classes\QueryRepository;
 use Basemkhirat\Elasticsearch\Classes\Repositorys\FileRepository;
 use Basemkhirat\Elasticsearch\Classes\Repositorys\RecordNotFoundException;
@@ -83,7 +84,12 @@ class RepositoryTests extends \PHPUnit_Framework_TestCase
          *
          * Change the query on the same ID as $record
          */
-        $retrievedDsl->whereNot('one_thing','more');
+        $retrievedDsl->whereNot(function(QueryDsl $queryDsl){
+            return $queryDsl->whereIn(function(QueryDsl $queryDsl){
+                return $queryDsl->where('toads','frogs');
+            });
+        });
+
         $retrievedRecord->setQueryDsl($retrievedDsl);
         $repo->update($retrievedRecord);
 
