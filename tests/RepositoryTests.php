@@ -8,12 +8,12 @@
 namespace Basemkhirat\Elasticsearch\Tests;
 
 use Basemkhirat\Elasticsearch\Classes\QueryRepository;
-use Basemkhirat\Elasticsearch\Classes\Repositorys\ESRepository;
 use Basemkhirat\Elasticsearch\Classes\Repositorys\FileRepository;
+use Basemkhirat\Elasticsearch\Classes\Repositorys\RecordNotFoundException;
 use Basemkhirat\Elasticsearch\Classes\Repositorys\RepositoryInterface;
 use Basemkhirat\Elasticsearch\Classes\Repositorys\RepositoryRecord;
 use Basemkhirat\Elasticsearch\Query;
-use Mockery\Mock;
+use Illuminate\Support\Collection;
 
 /**
  * Class RepositoryTests
@@ -48,11 +48,16 @@ class RepositoryTests extends \PHPUnit_Framework_TestCase
 
     public function test_file_repository()
     {
+
+        $repo = new QueryRepository();
+
+        /*
+         * Test initial save
+         */
         $query = new Query();
         $query->where('something','else');
-        $repo = new QueryRepository();
         $record = $repo->store($query->getQueryDsl());
-        $this->assertTrue($record instanceof RepositoryRecord);
+        $this->assertInstanceOf(RepositoryRecord::class,$record);
 
         /*
          * New object to contain the ID (unhydrated)
@@ -60,6 +65,8 @@ class RepositoryTests extends \PHPUnit_Framework_TestCase
         $idContainerRecord = new RepositoryRecord($record->getId());
 
         /*
+         * Test the retrieval
+         *
          * Object unserialized from the repo
          */
         $retrievedRecord = $repo->retrieve($idContainerRecord);
@@ -72,6 +79,8 @@ class RepositoryTests extends \PHPUnit_Framework_TestCase
         $this->assertEquals($query->getQueryDsl(),$retrievedDsl);
 
         /*
+         * Test the update
+         *
          * Change the query on the same ID as $record
          */
         $retrievedDsl->whereNot('one_thing','more');
@@ -81,5 +90,36 @@ class RepositoryTests extends \PHPUnit_Framework_TestCase
         $updatedRecord = $repo->retrieve($idContainerRecord);
         $this->assertEquals($retrievedDsl,$updatedRecord->getQueryDsl());
 
+        /*
+         * Add another couple to test the listing
+         */
+        $repo->store($query->getQueryDsl());
+        $repo->store($retrievedDsl);
+
+        $all = $repo->all();
+        $this->assertInstanceOf(Collection::class,$all);
+        $this->assertEquals(3,$all->count());
+
+        $all->each(function($record) use($repo){
+            $this->assertInstanceOf(RepositoryRecord::class,$record);
+            $repo->delete($record);
+            try{
+                /*
+                 * This should throw an exception
+                 * if the repo has been deleted
+                 */
+                $repo->retrieve($record);
+                $this->assertTrue(false);
+            }catch(RecordNotFoundException $exception){
+                $this->assertTrue(true);
+            }
+        });
+
+        /*
+         * Test we have no more repos saved
+         */
+        $all = $repo->all();
+        $this->assertInstanceOf(Collection::class,$all);
+        $this->assertEquals(0,$all->count());
     }
 }

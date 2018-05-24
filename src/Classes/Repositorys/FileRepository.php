@@ -29,7 +29,7 @@ class FileRepository implements RepositoryInterface
         $record = new RepositoryRecord(uniqid('es:'));
         $record->setQueryDsl($dsl);
         $record->setNote($note);
-        file_put_contents(base_path('storage/queries/'.$record->getId()),$record);
+        file_put_contents(self::getRepositoryFilePath($record->getId()),$record);
         return $record;
     }
 
@@ -40,7 +40,7 @@ class FileRepository implements RepositoryInterface
      */
     public static function retrieve(RepositoryRecord $record)
     {
-        if($data = file_get_contents(base_path('storage/queries/'.$record->getId()))) {
+        if (file_exists(self::getRepositoryFilePath($record->getId())) && $data = file_get_contents(self::getRepositoryFilePath($record->getId()))) {
             return unserialize($data);
         }
 
@@ -53,7 +53,7 @@ class FileRepository implements RepositoryInterface
      */
     public static function update(RepositoryRecord $record)
     {
-        file_put_contents(base_path('storage/queries/'.$record->getId()),$record);
+        file_put_contents(self::getRepositoryFilePath($record->getId()),$record);
         return $record;
     }
 
@@ -62,7 +62,18 @@ class FileRepository implements RepositoryInterface
      */
     public static function all()
     {
-        return new Collection(array_diff(scandir(base_path('storage/queries/')), array('.', '..')));
+        /*
+         * Retrieve all the file names from the storage directory
+         */
+        return (new Collection(array_filter(scandir(self::getRepositoryFilePath()),function($recordId){
+            return starts_with($recordId,'es:');
+        })))
+        /*
+         * Retrieve them as record classes
+         */
+        ->transform(function($recordId){
+            return self::retrieve(new RepositoryRecord($recordId));
+        });
     }
 
     /**
@@ -72,5 +83,14 @@ class FileRepository implements RepositoryInterface
     public static function delete(RepositoryRecord $record)
     {
         return unlink(base_path('storage/queries/'.$record->getId()));
+    }
+
+    /**
+     * @param string $id
+     * @return string
+     */
+    public static function getRepositoryFilePath($id = '')
+    {
+        return env('ES_QUERY_FILE_REPOSITORY_STORAGE_PATH',base_path('storage/queries')).'/'.(string)$id;
     }
 }

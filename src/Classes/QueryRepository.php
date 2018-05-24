@@ -42,6 +42,24 @@ class QueryRepository
         return null;
     }
 
+    public function all(RepositoryInterface $repository = null)
+    {
+        if($repository = $this->resolveRepository($repository)){
+            return $repository::all();
+        }
+
+        return null;
+    }
+
+    public function delete(RepositoryRecord $record,RepositoryInterface $repository = null)
+    {
+        if($repository = $this->resolveRepository($repository)){
+            return $repository::delete($record);
+        }
+
+        return null;
+    }
+
     public function resolveRepository(RepositoryInterface $repository = null)
     {
         if(function_exists('app') && !$repository){
