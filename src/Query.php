@@ -311,7 +311,7 @@ class Query
     public function response($scroll_id = NULL)
     {
 
-        $scroll_id = !is_null($scroll_id) ? $scroll_id : $this->scroll_id;
+        $scroll_id = !is_null($scroll_id) ? $scroll_id : $this->queryDsl->scroll_id;
 
         if ($scroll_id) {
 

@@ -28,7 +28,7 @@ class QueryDsl implements Arrayable,Jsonable
      * Filter operators
      * @var array
      */
-    protected $operators = [
+    public $operators = [
         "=",
         ">",
         ">=",
@@ -42,19 +42,19 @@ class QueryDsl implements Arrayable,Jsonable
      * Query index name
      * @var
      */
-    protected $index;
+    public $index;
 
     /**
      * Query type name
      * @var
      */
-    protected $type;
+    public $type;
 
     /**
      * Query type key
      * @var
      */
-    protected $_id;
+    public $_id;
 
     /**
      * Query body
@@ -66,7 +66,7 @@ class QueryDsl implements Arrayable,Jsonable
      * Query bool filter
      * @var array
      */
-    protected $filter = [];
+    public $filter = [];
 
     /**
      * Query bool must
@@ -84,43 +84,43 @@ class QueryDsl implements Arrayable,Jsonable
      * Query returned fields list
      * @var array
      */
-    protected $_source = [];
+    public $_source = [];
 
     /**
      * Query sort fields
      * @var array
      */
-    protected $sort = [];
+    public $sort = [];
 
     /**
      * Query scroll time
      * @var string
      */
-    protected $scroll;
+    public $scroll;
 
     /**
      * Query scroll id
      * @var string
      */
-    protected $scroll_id;
+    public $scroll_id;
 
     /**
      * Query search type
      * @var int
      */
-    protected $search_type;
+    public $search_type;
 
     /**
      * Query limit
      * @var int
      */
-    protected $take = 10;
+    public $take = 10;
 
     /**
      * Query offset
      * @var int
      */
-    protected $skip = 0;
+    public $skip = 0;
 
     /**
      * Set the index name

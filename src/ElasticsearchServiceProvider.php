@@ -131,6 +131,6 @@ class ElasticsearchServiceProvider extends ServiceProvider
             return new Connection();
         });
 
-        $this->app->bind(RepositoryInterface::class,$this->app->config('es.store.driver'));
+        $this->app->bind(RepositoryInterface::class,app('config')->get('es.store.driver'));
     }
 }
