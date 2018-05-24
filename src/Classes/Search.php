@@ -38,6 +38,8 @@ class Search
     /**
      * Search constructor.
      * @param Query $query
+     * @param mixed $q
+     * @param mixed $settings
      */
     public function __construct(Query $query, $q, $settings = NULL)
     {
@@ -101,7 +103,7 @@ class Search
             $query_params["fields"] = $this->fields;
         }
 
-        $this->query->must[] = [
+        $this->query->queryDsl->must[] = [
             "query_string" => $query_params
         ];
     }

@@ -3,13 +3,35 @@
 namespace Basemkhirat\Elasticsearch;
 
 use Basemkhirat\Elasticsearch\Classes\Bulk;
+use Basemkhirat\Elasticsearch\Classes\QueryDsl;
 use Basemkhirat\Elasticsearch\Classes\Search;
-use Basemkhirat\Elasticsearch\Collection;
 
 
 /**
  * Class Query
  * @package Basemkhirat\Elasticsearch\Query
+ * @method $this index(string $index) Set the index name
+ * @method $this type(string $type) Set the type name
+ * @method $this scroll(string $scroll) Set the query scroll
+ * @method $this scrollID(string $scrollID) Set the query scroll ID
+ * @method $this searchType(string $searchType) Set the query search type
+ * @method $this getSearchType() Get the query search type
+ * @method $this getScroll() Get the query scroll
+ * @method $this take(int $take = 10) Set the query limit
+ * @method $this ignore(mixed ...$args) Ignore bad HTTP response
+ * @method $this skip(int $type) Set the query offset
+ * @method $this orderBy(string $field, string $direction = 'asc') Set the sorting field
+ * @method $this select(mixed ...$args) Set the query fields to return
+ * @method $this _id(bool|string $_id = false) Filter by _id
+ * @method $this where(string $name, string $operator = "=", mixed|null $value = NULL) Set the query where clause
+ * @method $this whereNot(string $name, string $operator = "=", mixed|null $value = NULL) Set the query inverse where clause
+ * @method $this whereBetween(string $name, mixed $first_value, mixed|null $last_value = NULL) Set the query where between clause
+ * @method $this whereNotBetween(string $name, mixed $first_value, mixed|null $last_value = NULL) Set the query where not between clause
+ * @method $this whereIn(string $name, array $value = []) Set the query where in clause
+ * @method $this whereNotIn(string $name, array $value = []) Set the query where not in clause
+ * @method $this whereExists(string $name, bool $exists = true) Set the query where exists clause
+ * @method $this distance(string $name, mixed $value, string $distance) Add a condition to find documents which are some distance away from the given geo point. @see https://www.elastic.co/guide/en/elasticsearch/reference/2.4/query-dsl-geo-distance-query.html
+ * @method $this body(array $body = [])
  */
 class Query
 {
@@ -21,115 +43,15 @@ class Query
     public $connection;
 
     /**
-     * Ignored HTTP errors
-     * @var array
+     * @var QueryDsl
      */
-    public $ignores = [];
-
-    /**
-     * Filter operators
-     * @var array
-     */
-    protected $operators = [
-        "=",
-        "!=",
-        ">",
-        ">=",
-        "<",
-        "<=",
-        "like",
-        "exists"
-    ];
+    public $queryDsl;
 
     /**
      * Query array
      * @var
      */
     protected $query;
-
-    /**
-     * Query index name
-     * @var
-     */
-    protected $index;
-
-    /**
-     * Query type name
-     * @var
-     */
-    protected $type;
-
-    /**
-     * Query type key
-     * @var
-     */
-    protected $_id;
-
-    /**
-     * Query body
-     * @var array
-     */
-    public $body = [];
-
-    /**
-     * Query bool filter
-     * @var array
-     */
-    protected $filter = [];
-
-    /**
-     * Query bool must
-     * @var array
-     */
-    public $must = [];
-
-    /**
-     * Query bool must not
-     * @var array
-     */
-    public $must_not = [];
-
-    /**
-     * Query returned fields list
-     * @var array
-     */
-    protected $_source = [];
-
-    /**
-     * Query sort fields
-     * @var array
-     */
-    protected $sort = [];
-
-    /**
-     * Query scroll time
-     * @var string
-     */
-    protected $scroll;
-
-    /**
-     * Query scroll id
-     * @var string
-     */
-    protected $scroll_id;
-
-    /**
-     * Query search type
-     * @var int
-     */
-    protected $search_type;
-
-    /**
-     * Query limit
-     * @var int
-     */
-    protected $take = 10;
-
-    /**
-     * Query offset
-     * @var int
-     */
-    protected $skip = 0;
 
     /**
      * The key that should be used when caching the query.
@@ -161,27 +83,20 @@ class Query
      */
     public $model;
 
+    /**
+     * @var null
+     */
+    public $record = null;
 
     /**
      * Query constructor.
-     * @param $connection
+     * @param resource $connection|null
+     * @param QueryDsl $queryDsl|null
      */
-    function __construct($connection = NULL)
+    function __construct($connection = NULL, QueryDsl $queryDsl = NULL)
     {
         $this->connection = $connection;
-    }
-
-    /**
-     * Set the index name
-     * @param $index
-     * @return $this
-     */
-    public function index($index)
-    {
-
-        $this->index = $index;
-
-        return $this;
+        $this->queryDsl = $queryDsl?: new QueryDsl();
     }
 
     /**
@@ -190,20 +105,7 @@ class Query
      */
     public function getIndex()
     {
-        return $this->index;
-    }
-
-    /**
-     * Set the type name
-     * @param $type
-     * @return $this
-     */
-    public function type($type)
-    {
-
-        $this->type = $type;
-
-        return $this;
+        return $this->queryDsl->getIndex();
     }
 
     /**
@@ -212,101 +114,7 @@ class Query
      */
     public function getType()
     {
-        return $this->type;
-    }
-
-    /**
-     * Set the query scroll
-     * @param string $scroll
-     * @return $this
-     */
-    public function scroll($scroll)
-    {
-
-        $this->scroll = $scroll;
-
-        return $this;
-    }
-
-    /**
-     * Set the query scroll ID
-     * @param string $scroll
-     * @return $this
-     */
-    public function scrollID($scroll)
-    {
-
-        $this->scroll_id = $scroll;
-
-        return $this;
-    }
-
-    /**
-     * Set the query search type
-     * @param string $type
-     * @return $this
-     */
-    public function searchType($type)
-    {
-
-        $this->search_type = $type;
-
-        return $this;
-    }
-
-    /**
-     * get the query search type
-     * @return $this
-     */
-    public function getSearchType()
-    {
-        return $this->search_type;
-    }
-
-    /**
-     * Get the query scroll
-     * @return $this
-     */
-    public function getScroll()
-    {
-        return $this->scroll;
-    }
-
-    /**
-     * Set the query limit
-     * @param int $take
-     * @return $this
-     */
-    public function take($take = 10)
-    {
-
-        $this->take = $take;
-
-        return $this;
-    }
-
-    /**
-     * Ignore bad HTTP response
-     * @return $this
-     */
-    public function ignore()
-    {
-
-        $args = func_get_args();
-
-        foreach ($args as $arg) {
-
-            if (is_array($arg)) {
-                $this->ignores = array_merge($this->ignores, $arg);
-            } else {
-                $this->ignores[] = $arg;
-            }
-
-        }
-
-        $this->ignores = array_unique($this->ignores);
-
-        return $this;
+        return $this->queryDsl->getType();
     }
 
     /**
@@ -315,20 +123,7 @@ class Query
      */
     protected function getTake()
     {
-        return $this->take;
-    }
-
-    /**
-     * Set the query offset
-     * @param int $skip
-     * @return $this
-     */
-    public function skip($skip = 0)
-    {
-
-        $this->skip = $skip;
-
-        return $this;
+        return $this->queryDsl->getTake();
     }
 
     /**
@@ -337,21 +132,7 @@ class Query
      */
     protected function getSkip()
     {
-        return $this->skip;
-    }
-
-    /**
-     * Set the sorting field
-     * @param        $field
-     * @param string $direction
-     * @return $this
-     */
-    public function orderBy($field, $direction = "asc")
-    {
-
-        $this->sort[] = [$field => $direction];
-
-        return $this;
+        return $this->queryDsl->getSkip();
     }
 
     /**
@@ -361,297 +142,9 @@ class Query
      */
     protected function isOperator($string)
     {
-
-        if (in_array($string, $this->operators)) {
-            return true;
-        }
-
-        return false;
+        return $this->queryDsl->isOperator($string);
     }
 
-    /**
-     * Set the query fields to return
-     * @return $this
-     */
-    public function select()
-    {
-
-        $args = func_get_args();
-
-        foreach ($args as $arg) {
-
-            if (is_array($arg)) {
-                $this->_source = array_merge($this->_source, $arg);
-            } else {
-                $this->_source[] = $arg;
-            }
-
-        }
-
-        return $this;
-    }
-
-    /**
-     * Filter by _id
-     * @param bool $_id
-     * @return $this
-     */
-    public function _id($_id = false)
-    {
-
-        $this->_id = $_id;
-
-        $this->filter[] = ["term" => ["_id" => $_id]];
-
-        return $this;
-    }
-
-    /**
-     * Just an alias for _id() method
-     * @param bool $_id
-     * @return $this
-     */
-    public function id($_id = false)
-    {
-        return $this->_id($_id);
-    }
-
-    /**
-     * Set the query where clause
-     * @param        $name
-     * @param string $operator
-     * @param null $value
-     * @return $this
-     */
-    public function where($name, $operator = "=", $value = NULL)
-    {
-
-        if (is_callback_function($name)) {
-            $name($this);
-            return $this;
-        }
-
-        if (!$this->isOperator($operator)) {
-            $value = $operator;
-            $operator = "=";
-        }
-
-        if ($operator == "=") {
-
-            if ($name == "_id") {
-                return $this->_id($value);
-            }
-
-            $this->filter[] = ["term" => [$name => $value]];
-        }
-
-        if ($operator == ">") {
-            $this->filter[] = ["range" => [$name => ["gt" => $value]]];
-        }
-
-        if ($operator == ">=") {
-            $this->filter[] = ["range" => [$name => ["gte" => $value]]];
-        }
-
-        if ($operator == "<") {
-            $this->filter[] = ["range" => [$name => ["lt" => $value]]];
-        }
-
-        if ($operator == "<=") {
-            $this->filter[] = ["range" => [$name => ["lte" => $value]]];
-        }
-
-        if ($operator == "like") {
-            $this->must[] = ["match" => [$name => $value]];
-        }
-
-        if ($operator == "exists") {
-            $this->whereExists($name, $value);
-        }
-
-        return $this;
-    }
-
-    /**
-     * Set the query inverse where clause
-     * @param        $name
-     * @param string $operator
-     * @param null $value
-     * @return $this
-     */
-    public function whereNot($name, $operator = "=", $value = NULL)
-    {
-
-        if (is_callback_function($name)) {
-            $name($this);
-            return $this;
-        }
-
-        if (!$this->isOperator($operator)) {
-            $value = $operator;
-            $operator = "=";
-        }
-
-        if ($operator == "=") {
-            $this->must_not[] = ["term" => [$name => $value]];
-        }
-
-        if ($operator == ">") {
-            $this->must_not[] = ["range" => [$name => ["gt" => $value]]];
-        }
-
-        if ($operator == ">=") {
-            $this->must_not[] = ["range" => [$name => ["gte" => $value]]];
-        }
-
-        if ($operator == "<") {
-            $this->must_not[] = ["range" => [$name => ["lt" => $value]]];
-        }
-
-        if ($operator == "<=") {
-            $this->must_not[] = ["range" => [$name => ["lte" => $value]]];
-        }
-
-        if ($operator == "like") {
-            $this->must_not[] = ["match" => [$name => $value]];
-        }
-
-        if ($operator == "exists") {
-            $this->whereExists($name, !$value);
-        }
-
-        return $this;
-    }
-
-    /**
-     * Set the query where between clause
-     * @param $name
-     * @param $first_value
-     * @param $last_value
-     * @return $this
-     */
-    public function whereBetween($name, $first_value, $last_value = null)
-    {
-
-        if (is_array($first_value) && count($first_value) == 2) {
-            $last_value = $first_value[1];
-            $first_value = $first_value[0];
-        }
-
-        $this->filter[] = ["range" => [$name => ["gte" => $first_value, "lte" => $last_value]]];
-
-        return $this;
-    }
-
-    /**
-     * Set the query where not between clause
-     * @param $name
-     * @param $first_value
-     * @param $last_value
-     * @return $this
-     */
-    public function whereNotBetween($name, $first_value, $last_value = null)
-    {
-
-        if (is_array($first_value) && count($first_value) == 2) {
-            $last_value = $first_value[1];
-            $first_value = $first_value[0];
-        }
-
-        $this->must_not[] = ["range" => [$name => ["gte" => $first_value, "lte" => $last_value]]];
-
-        return $this;
-    }
-
-    /**
-     * Set the query where in clause
-     * @param       $name
-     * @param array $value
-     * @return $this
-     */
-    public function whereIn($name, $value = [])
-    {
-
-        if (is_callback_function($name)) {
-            $name($this);
-            return $this;
-        }
-
-        $this->filter[] = ["terms" => [$name => $value]];
-
-        return $this;
-    }
-
-    /**
-     * Set the query where not in clause
-     * @param       $name
-     * @param array $value
-     * @return $this
-     */
-    public function whereNotIn($name, $value = [])
-    {
-
-        if (is_callback_function($name)) {
-            $name($this);
-            return $this;
-        }
-
-        $this->must_not[] = ["terms" => [$name => $value]];
-
-        return $this;
-    }
-
-
-    /**
-     * Set the query where exists clause
-     * @param      $name
-     * @param bool $exists
-     * @return $this
-     */
-    public function whereExists($name, $exists = true)
-    {
-
-        if ($exists) {
-            $this->must[] = ["exists" => ["field" => $name]];
-        } else {
-            $this->must_not[] = ["exists" => ["field" => $name]];
-        }
-
-        return $this;
-    }
-
-    /**
-     * Add a condition to find documents which are some distance away from the given geo point.
-     *
-     * @see https://www.elastic.co/guide/en/elasticsearch/reference/2.4/query-dsl-geo-distance-query.html
-     *
-     * @param        $name
-     *   A name of the field.
-     * @param mixed $value
-     *   A starting geo point which can be represented by a string "lat,lon",
-     *   an object {"lat": lat, "lon": lon} or an array [lon,lat].
-     * @param string $distance
-     *   A distance from the starting geo point. It can be for example "20km".
-     *
-     * @return $this
-     */
-    public function distance($name, $value, $distance)
-    {
-
-        if (is_callback_function($name)) {
-            $name($this);
-            return $this;
-        }
-
-        $this->filter[] = [
-            "geo_distance" => [
-                $name => $value,
-                "distance" => $distance,
-            ]
-        ];
-
-        return $this;
-    }
 
     /**
      * Search the entire document fields
@@ -682,52 +175,7 @@ class Query
      */
     protected function getBody()
     {
-
-        $body = $this->body;
-
-        if (count($this->_source)) {
-
-            $_source = array_key_exists("_source", $body) ? $body["_source"] : [];
-
-            $body["_source"] = array_unique(array_merge($_source, $this->_source));
-        }
-
-        if (count($this->must)) {
-            $body["query"]["bool"]["must"] = $this->must;
-        }
-
-        if (count($this->must_not)) {
-            $body["query"]["bool"]["must_not"] = $this->must_not;
-        }
-
-        if (count($this->filter)) {
-            $body["query"]["bool"]["filter"] = $this->filter;
-        }
-
-        if (count($this->sort)) {
-
-            $sortFields = array_key_exists("sort", $body) ? $body["sort"] : [];
-
-            $body["sort"] = array_unique(array_merge($sortFields, $this->sort), SORT_REGULAR);
-
-        }
-
-        $this->body = $body;
-
-        return $body;
-    }
-
-    /**
-     * set the query body array
-     * @param array $body
-     * @return $this
-     */
-    function body($body = [])
-    {
-
-        $this->body = $body;
-
-        return $this;
+        return $this->queryDsl->getBody();
     }
 
     /**
@@ -739,33 +187,33 @@ class Query
 
         $query = [];
 
-        $query["index"] = $this->getIndex();
+        $query["index"] = $this->queryDsl->getIndex();
 
         if ($this->getType()) {
-            $query["type"] = $this->getType();
+            $query["type"] = $this->queryDsl->getType();
         }
 
         if($this->model){
             $this->model->boot($this);
         }
 
-        $query["body"] = $this->getBody();
+        $query["body"] = $this->queryDsl->getBody();
 
-        $query["from"] = $this->getSkip();
+        $query["from"] = $this->queryDsl->getSkip();
 
-        $query["size"] = $this->getTake();
+        $query["size"] = $this->queryDsl->getTake();
 
-        if (count($this->ignores)) {
-            $query["client"] = ['ignore' => $this->ignores];
+        if (count($this->queryDsl->ignores)) {
+            $query["client"] = ['ignore' => $this->queryDsl->ignores];
         }
 
-        $search_type = $this->getSearchType();
+        $search_type = $this->queryDsl->getSearchType();
 
         if ($search_type) {
             $query["search_type"] = $search_type;
         }
 
-        $scroll = $this->getScroll();
+        $scroll = $this->queryDsl->getScroll();
 
         if ($scroll) {
             $query["scroll"] = $scroll;
@@ -782,11 +230,11 @@ class Query
     public function clear($scroll_id = NULL)
     {
 
-        $scroll_id = !is_null($scroll_id) ? $scroll_id : $this->scroll_id;
+        $scroll_id = !is_null($scroll_id) ? $scroll_id : $this->queryDsl->scroll_id;
 
         return $this->connection->clearScroll([
             "scroll_id" => $scroll_id,
-            'client' => ['ignore' => $this->ignores]
+            'client' => ['ignore' => $this->queryDsl->ignores]
         ]);
     }
 
@@ -797,9 +245,6 @@ class Query
      */
     public function get($scroll_id = NULL)
     {
-
-        $scroll_id = NULL;
-
         $result = $this->getResult($scroll_id);
 
         return $this->getAll($result);
@@ -851,12 +296,12 @@ class Query
     public function response($scroll_id = NULL)
     {
 
-        $scroll_id = !is_null($scroll_id) ? $scroll_id : $this->scroll_id;
+        $scroll_id = !is_null($scroll_id) ? $scroll_id : $this->queryDsl->scroll_id;
 
         if ($scroll_id) {
 
             $result = $this->connection->scroll([
-                "scroll" => $this->scroll,
+                "scroll" => $this->queryDsl->scroll,
                 "scroll_id" => $scroll_id
             ]);
 
@@ -942,6 +387,10 @@ class Query
         $new->timed_out = $result["timed_out"];
         $new->scroll_id = isset($result["_scroll_id"]) ? $result["_scroll_id"] : NULL;
         $new->shards = (object)$result["_shards"];
+        
+        if(array_has($result,'aggregations')){
+            $new->aggs = new Collection(array_get($result,'aggregations'));
+        }
 
         return $new;
     }
@@ -1014,12 +463,12 @@ class Query
     {
 
         if ($_id) {
-            $this->_id = $_id;
+            $this->queryDsl->_id = $_id;
         }
 
         $parameters = [
             "body" => $data,
-            'client' => ['ignore' => $this->ignores]
+            'client' => ['ignore' => $this->queryDsl->ignores]
         ];
 
         if ($index = $this->getIndex()) {
@@ -1030,8 +479,8 @@ class Query
             $parameters["type"] = $type;
         }
 
-        if ($this->_id) {
-            $parameters["id"] = $this->_id;
+        if ($this->queryDsl->_id) {
+            $parameters["id"] = $this->queryDsl->_id;
         }
 
         return (object)$this->connection->index($parameters);
@@ -1039,7 +488,7 @@ class Query
 
     /**
      * Insert a bulk of documents
-     * @param $data multidimensional array of [id => data] pairs
+     * @param $data[] multidimensional array of [id => data] pairs
      * @return object
      */
     public function bulk($data)
@@ -1088,13 +537,13 @@ class Query
     {
 
         if ($_id) {
-            $this->_id = $_id;
+            $this->queryDsl->_id = $_id;
         }
 
         $parameters = [
-            "id" => $this->_id,
+            "id" => $this->queryDsl->_id,
             "body" => ['doc' => $data],
-            'client' => ['ignore' => $this->ignores]
+            'client' => ['ignore' => $this->queryDsl->ignores]
         ];
 
         if ($index = $this->getIndex()) {
@@ -1147,14 +596,14 @@ class Query
     {
 
         $parameters = [
-            "id" => $this->_id,
+            "id" => $this->queryDsl->_id,
             "body" => [
                 "script" => [
                     "inline" => $script,
                     "params" => $params
                 ]
             ],
-            'client' => ['ignore' => $this->ignores]
+            'client' => ['ignore' => $this->queryDsl->ignores]
         ];
 
         if ($index = $this->getIndex()) {
@@ -1177,12 +626,12 @@ class Query
     {
 
         if ($_id) {
-            $this->_id = $_id;
+            $this->queryDsl->_id = $_id;
         }
 
         $parameters = [
-            "id" => $this->_id,
-            'client' => ['ignore' => $this->ignores]
+            "id" => $this->queryDsl->_id,
+            'client' => ['ignore' => $this->queryDsl->ignores]
         ];
 
         if ($index = $this->getIndex()) {
@@ -1212,7 +661,7 @@ class Query
     function exists()
     {
 
-        $index = new Index($this->index);
+        $index = new Index($this->queryDsl->index);
 
         $index->connection = $this->connection;
 
@@ -1260,7 +709,7 @@ class Query
     function create($callback = false)
     {
 
-        $index = new Index($this->index, $callback);
+        $index = new Index($this->queryDsl->index, $callback);
 
         $index->connection = $this->connection;
 
@@ -1274,7 +723,7 @@ class Query
     function drop()
     {
 
-        $index = new Index($this->index);
+        $index = new Index($this->queryDsl->index);
 
         $index->connection = $this->connection;
 
@@ -1369,6 +818,15 @@ class Query
 
         if (method_exists($this, $method)) {
             return $this->$method(...$parameters);
+        }elseif(method_exists($this->queryDsl, $method)){
+            /*
+             * All the chainable methods that were moved to QueryDsl
+             * can be handled here and survive as they all expect
+             * $this to be the returned value.
+             */
+            $this->queryDsl->$method(...$parameters);
+            return $this;
+
         } else {
 
             // Check for model scopes
@@ -1381,6 +839,22 @@ class Query
                 return $this;
             }
         }
-
     }
+
+    /**
+     * @return QueryDsl
+     */
+    public function getQueryDsl()
+    {
+        return $this->queryDsl;
+    }
+
+    /**
+     * @param QueryDsl $queryDsl
+     */
+    public function setQueryDsl($queryDsl)
+    {
+        $this->queryDsl = $queryDsl;
+    }
+
 }
