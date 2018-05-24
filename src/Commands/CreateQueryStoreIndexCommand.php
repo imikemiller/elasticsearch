@@ -37,17 +37,13 @@ class CreateQueryStoreIndexCommand extends CreateIndexCommand
      */
     public function handle()
     {
-        /*
-         * Find query store index
-         */
-        $store = require dirname(__FILE__) . '/../config/store.php';
-        $index = array_keys($store['store'])[0];
-        /*
-         * Pass as an argument and call parent
-         */
-        $this->getDefinition()->addArgument(new InputArgument('index',null,'',$index));
+        $index = env('ES_STORE_INDEX');
 
         if($this->confirm("Creating query storage index: {$index}")){
+            /*
+             * Pass as an argument and call parent
+             */
+            $this->getDefinition()->addArgument(new InputArgument('index',null,'',$index));
             parent::handle();
         };
     }

@@ -4,12 +4,36 @@ namespace Basemkhirat\Elasticsearch;
 
 use Basemkhirat\Elasticsearch\Classes\Bulk;
 use Basemkhirat\Elasticsearch\Classes\QueryDsl;
+use Basemkhirat\Elasticsearch\Classes\Repositorys\RepositoryInterface;
+use Basemkhirat\Elasticsearch\Classes\Repositorys\RepositoryRecord;
 use Basemkhirat\Elasticsearch\Classes\Search;
 
 
 /**
  * Class Query
  * @package Basemkhirat\Elasticsearch\Query
+ * @method $this index(string $index) Set the index name
+ * @method $this type(string $type) Set the type name
+ * @method $this scroll(string $scroll) Set the query scroll
+ * @method $this scrollID(string $scrollID) Set the query scroll ID
+ * @method $this searchType(string $searchType) Set the query search type
+ * @method $this getSearchType() Get the query search type
+ * @method $this getScroll() Get the query scroll
+ * @method $this take(int $take = 10) Set the query limit
+ * @method $this ignore(mixed ...$args) Ignore bad HTTP response
+ * @method $this skip(int $type) Set the query offset
+ * @method $this orderBy(string $field, string $direction = 'asc') Set the sorting field
+ * @method $this select(mixed ...$args) Set the query fields to return
+ * @method $this _id(bool|string $_id = false) Filter by _id
+ * @method $this where(string $name, string $operator = "=", mixed|null $value = NULL) Set the query where clause
+ * @method $this whereNot(string $name, string $operator = "=", mixed|null $value = NULL) Set the query inverse where clause
+ * @method $this whereBetween(string $name, mixed $first_value, mixed|null $last_value = NULL) Set the query where between clause
+ * @method $this whereNotBetween(string $name, mixed $first_value, mixed|null $last_value = NULL) Set the query where not between clause
+ * @method $this whereIn(string $name, array $value = []) Set the query where in clause
+ * @method $this whereNotIn(string $name, array $value = []) Set the query where not in clause
+ * @method $this whereExists(string $name, bool $exists = true) Set the query where exists clause
+ * @method $this distance(string $name, mixed $value, string $distance) Add a condition to find documents which are some distance away from the given geo point. @see https://www.elastic.co/guide/en/elasticsearch/reference/2.4/query-dsl-geo-distance-query.html
+ * @method $this body(array $body = [])
  */
 class Query
 {
@@ -61,6 +85,10 @@ class Query
      */
     public $model;
 
+    /**
+     * @var null
+     */
+    public $record = null;
 
     /**
      * Query constructor.
@@ -70,7 +98,7 @@ class Query
     function __construct($connection = NULL, QueryDsl $queryDsl = NULL)
     {
         $this->connection = $connection;
-        $this->queryDsl = $queryDsl?:new QueryDsl();
+        $this->queryDsl = $queryDsl?: new QueryDsl();
     }
 
     /**
@@ -822,6 +850,22 @@ class Query
                 return $this;
             }
         }
-
     }
+
+    /**
+     * @return QueryDsl
+     */
+    public function getQueryDsl()
+    {
+        return $this->queryDsl;
+    }
+
+    /**
+     * @param QueryDsl $queryDsl
+     */
+    public function setQueryDsl($queryDsl)
+    {
+        $this->queryDsl = $queryDsl;
+    }
+
 }

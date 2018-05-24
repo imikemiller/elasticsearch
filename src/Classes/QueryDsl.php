@@ -7,13 +7,16 @@
  */
 
 namespace Basemkhirat\Elasticsearch\Classes;
+use Basemkhirat\Elasticsearch\Classes\Repositorys\RepositoryInterface;
+use Illuminate\Contracts\Support\Arrayable;
+use Illuminate\Contracts\Support\Jsonable;
 
 
 /**
  * Class QueryDsl
  * @package Basemkhirat\Elasticsearch
  */
-class QueryDsl
+class QueryDsl implements Arrayable,Jsonable
 {
     /**
      * Ignored HTTP errors
@@ -27,7 +30,6 @@ class QueryDsl
      */
     protected $operators = [
         "=",
-        "!=",
         ">",
         ">=",
         "<",
@@ -695,4 +697,24 @@ class QueryDsl
         $this->filter[] = $filter;
     }
 
+    /**
+     * Get the instance as an array.
+     *
+     * @return array
+     */
+    public function toArray()
+    {
+        return get_object_vars($this);
+    }
+
+    /**
+     * Convert the object to its JSON representation.
+     *
+     * @param  int $options
+     * @return string
+     */
+    public function toJson($options = 0)
+    {
+        return json_encode($this->toArray(),$options);
+    }
 }

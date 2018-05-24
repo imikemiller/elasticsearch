@@ -2,6 +2,7 @@
 
 namespace Basemkhirat\Elasticsearch;
 
+use Basemkhirat\Elasticsearch\Classes\QueryDsl;
 use Basemkhirat\Elasticsearch\Classes\Repositorys\RepositoryInterface;
 use Basemkhirat\Elasticsearch\Commands\CreateQueryStoreIndexCommand;
 use Basemkhirat\Elasticsearch\Commands\ReindexCommand;
@@ -95,6 +96,7 @@ class ElasticsearchServiceProvider extends ServiceProvider
          * Overwrite existing indices config
          */
         app('config')->set('es.indices',$indices);
+        app('config')->set('es.store.driver',$store['driver']);
     }
 
     /**
@@ -129,6 +131,6 @@ class ElasticsearchServiceProvider extends ServiceProvider
             return new Connection();
         });
 
-       // $this->app->bind(RepositoryInterface::class,$this->app->config('es.'))
+        $this->app->bind(RepositoryInterface::class,$this->app->config('es.store.driver'));
     }
 }
