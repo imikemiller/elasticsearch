@@ -4,8 +4,6 @@ namespace Basemkhirat\Elasticsearch;
 
 use Basemkhirat\Elasticsearch\Classes\Bulk;
 use Basemkhirat\Elasticsearch\Classes\QueryDsl;
-use Basemkhirat\Elasticsearch\Classes\Repositorys\RepositoryInterface;
-use Basemkhirat\Elasticsearch\Classes\Repositorys\RepositoryRecord;
 use Basemkhirat\Elasticsearch\Classes\Search;
 
 
@@ -147,16 +145,6 @@ class Query
         return $this->queryDsl->isOperator($string);
     }
 
-    /**
-     * Just an alias for _id() method
-     * @param bool $_id
-     * @return $this
-     */
-    public function id($_id = false)
-    {
-        return $this->_id($_id);
-    }
-
 
     /**
      * Search the entire document fields
@@ -242,11 +230,11 @@ class Query
     public function clear($scroll_id = NULL)
     {
 
-        $scroll_id = !is_null($scroll_id) ? $scroll_id : $this->scroll_id;
+        $scroll_id = !is_null($scroll_id) ? $scroll_id : $this->queryDsl->scroll_id;
 
         return $this->connection->clearScroll([
             "scroll_id" => $scroll_id,
-            'client' => ['ignore' => $this->ignores]
+            'client' => ['ignore' => $this->queryDsl->ignores]
         ]);
     }
 
@@ -257,9 +245,6 @@ class Query
      */
     public function get($scroll_id = NULL)
     {
-
-        $scroll_id = NULL;
-
         $result = $this->getResult($scroll_id);
 
         return $this->getAll($result);
@@ -316,7 +301,7 @@ class Query
         if ($scroll_id) {
 
             $result = $this->connection->scroll([
-                "scroll" => $this->scroll,
+                "scroll" => $this->queryDsl->scroll,
                 "scroll_id" => $scroll_id
             ]);
 
@@ -474,12 +459,12 @@ class Query
     {
 
         if ($_id) {
-            $this->_id = $_id;
+            $this->queryDsl->_id = $_id;
         }
 
         $parameters = [
             "body" => $data,
-            'client' => ['ignore' => $this->ignores]
+            'client' => ['ignore' => $this->queryDsl->ignores]
         ];
 
         if ($index = $this->getIndex()) {
@@ -490,8 +475,8 @@ class Query
             $parameters["type"] = $type;
         }
 
-        if ($this->_id) {
-            $parameters["id"] = $this->_id;
+        if ($this->queryDsl->_id) {
+            $parameters["id"] = $this->queryDsl->_id;
         }
 
         return (object)$this->connection->index($parameters);
@@ -548,13 +533,13 @@ class Query
     {
 
         if ($_id) {
-            $this->_id = $_id;
+            $this->queryDsl->_id = $_id;
         }
 
         $parameters = [
-            "id" => $this->_id,
+            "id" => $this->queryDsl->_id,
             "body" => ['doc' => $data],
-            'client' => ['ignore' => $this->ignores]
+            'client' => ['ignore' => $this->queryDsl->ignores]
         ];
 
         if ($index = $this->getIndex()) {
@@ -607,14 +592,14 @@ class Query
     {
 
         $parameters = [
-            "id" => $this->_id,
+            "id" => $this->queryDsl->_id,
             "body" => [
                 "script" => [
                     "inline" => $script,
                     "params" => $params
                 ]
             ],
-            'client' => ['ignore' => $this->ignores]
+            'client' => ['ignore' => $this->queryDsl->ignores]
         ];
 
         if ($index = $this->getIndex()) {
@@ -637,12 +622,12 @@ class Query
     {
 
         if ($_id) {
-            $this->_id = $_id;
+            $this->queryDsl->_id = $_id;
         }
 
         $parameters = [
-            "id" => $this->_id,
-            'client' => ['ignore' => $this->ignores]
+            "id" => $this->queryDsl->_id,
+            'client' => ['ignore' => $this->queryDsl->ignores]
         ];
 
         if ($index = $this->getIndex()) {
@@ -672,7 +657,7 @@ class Query
     function exists()
     {
 
-        $index = new Index($this->index);
+        $index = new Index($this->queryDsl->index);
 
         $index->connection = $this->connection;
 
@@ -720,7 +705,7 @@ class Query
     function create($callback = false)
     {
 
-        $index = new Index($this->index, $callback);
+        $index = new Index($this->queryDsl->index, $callback);
 
         $index->connection = $this->connection;
 
@@ -734,7 +719,7 @@ class Query
     function drop()
     {
 
-        $index = new Index($this->index);
+        $index = new Index($this->queryDsl->index);
 
         $index->connection = $this->connection;
 
