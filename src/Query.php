@@ -387,6 +387,10 @@ class Query
         $new->timed_out = $result["timed_out"];
         $new->scroll_id = isset($result["_scroll_id"]) ? $result["_scroll_id"] : NULL;
         $new->shards = (object)$result["_shards"];
+        
+        if(array_has($result,'aggregations')){
+            $new->aggs = new Collection(array_get($result,'aggregations'));
+        }
 
         return $new;
     }

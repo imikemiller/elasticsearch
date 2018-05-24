@@ -7,6 +7,7 @@
  */
 
 namespace Basemkhirat\Elasticsearch\Classes;
+
 use Basemkhirat\Elasticsearch\Classes\Repositorys\RepositoryInterface;
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Contracts\Support\Jsonable;
@@ -16,7 +17,7 @@ use Illuminate\Contracts\Support\Jsonable;
  * Class QueryDsl
  * @package Basemkhirat\Elasticsearch
  */
-class QueryDsl implements Arrayable,Jsonable
+class QueryDsl implements Arrayable, Jsonable
 {
     /**
      * Ignored HTTP errors
@@ -121,6 +122,16 @@ class QueryDsl implements Arrayable,Jsonable
      * @var int
      */
     public $skip = 0;
+
+    /**
+     * @var int
+     */
+    public $size = 10;
+
+    /**
+     * @var null|array
+     */
+    public $aggs = null;
 
     /**
      * Set the index name
@@ -638,6 +649,14 @@ class QueryDsl implements Arrayable,Jsonable
 
         }
 
+        if ($this->size !== false) {
+            $body['size'] = $this->size;
+        }
+
+        if ($this->aggs) {
+            $body['aggs'] = $this->aggs;
+        }
+
         $this->body = $body;
 
         return $body;
@@ -698,6 +717,43 @@ class QueryDsl implements Arrayable,Jsonable
     }
 
     /**
+     * @return int
+     */
+    public function getSize()
+    {
+        return $this->size;
+    }
+
+    /**
+     * @param int $size
+     * @return $this
+     */
+    public function setSize($size)
+    {
+        $this->size = $size;
+        return $this;
+    }
+
+    /**
+     * @return array|null
+     */
+    public function getAggs()
+    {
+        return $this->aggs;
+    }
+
+    /**
+     * @param array|null $aggs
+     * @return $this
+     */
+    public function setAggs(array $aggs)
+    {
+        $this->aggs = $aggs;
+        return $this;
+    }
+
+
+    /**
      * Get the instance as an array.
      *
      * @return array
@@ -715,6 +771,6 @@ class QueryDsl implements Arrayable,Jsonable
      */
     public function toJson($options = 0)
     {
-        return json_encode($this->toArray(),$options);
+        return json_encode($this->toArray(), $options);
     }
 }
