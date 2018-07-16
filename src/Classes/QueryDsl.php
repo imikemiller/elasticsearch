@@ -31,6 +31,7 @@ class QueryDsl implements Arrayable, Jsonable
      */
     public $operators = [
         "=",
+        "!=",
         ">",
         ">=",
         "<",
@@ -405,6 +406,10 @@ class QueryDsl implements Arrayable, Jsonable
             $this->filter[] = ["term" => [$name => $value]];
         }
 
+        if ($operator == "!=") {
+            $this->must_not[] = ["term" => [$name => $value]];
+        }
+
         if ($operator == ">") {
             $this->filter[] = ["range" => [$name => ["gt" => $value]]];
         }
@@ -454,6 +459,15 @@ class QueryDsl implements Arrayable, Jsonable
 
         if ($operator == "=") {
             $this->must_not[] = ["term" => [$name => $value]];
+        }
+
+        if ($operator == "!=") {
+
+            if ($name == "_id") {
+                return $this->_id($value);
+            }
+
+            $this->filter[] = ["term" => [$name => $value]];
         }
 
         if ($operator == ">") {
